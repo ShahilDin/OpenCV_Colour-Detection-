@@ -1,0 +1,28 @@
+import numpy as np
+import cv2
+
+def detect_blue(hsv,frame):
+    
+    #setting range for blue color 
+    #[hue range, saturation,value]
+    # creating mask of blue #value were pick by running the b_mask against a image and seeing the result
+    b_low=np.array([90,90,5])
+    b_high=np.array([130,255,255])
+    b_mask= cv2.inRange(hsv,b_low,b_high)
+    
+    
+    #cv2.bitwise detect only that colour between the frame and mask
+    detect_blue=cv2.bitwise_and(frame,frame,mask=b_mask)
+        
+    # creating contour to track blue
+    _,contour,hierarcy= cv2.findContours(b_mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        
+    for i, contour in enumerate(contour):
+        #Problem is it picks up small amount of blue so therefore it picks up a high volume of object
+        # cv2.contourarea returns the area and if its great than 500 pixel then draw the rectangle 
+        if cv2.contourArea(contour) > 500:
+            x,y,w,h= cv2.boundingRect(contour) #highlight the ROI after obtaining contours from an image.
+            blue_rect=cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),1) #drawing the rectangle from the obtained ROI
+            cv2.putText(frame,"Blue Object",(x,y),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),1,cv2.LINE_AA)
+    
+    return frame
